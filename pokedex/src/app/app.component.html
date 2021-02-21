@@ -1,0 +1,21 @@
+<ion-app>
+  <ion-menu contentId="main">
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>PokeDex</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      <ion-list>
+        <ion-menu-toggle auto-hide="true">
+          <ion-item [routerLink]="['/']">Home</ion-item>
+          <ion-item [routerLink]="['/allpokemon']">All Pokemon</ion-item>
+          <ion-item [routerLink]="['/caughtpokemon']">Caught Pokemon</ion-item>
+          <ion-item [routerLink]="['/catchpokemon']">Catch new Pokemon</ion-item>
+        </ion-menu-toggle>
+      </ion-list>
+    </ion-content>
+  </ion-menu>
+
+  <ion-router-outlet id="main"></ion-router-outlet>
+</ion-app>

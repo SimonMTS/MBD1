@@ -1,0 +1,8 @@
+{
+  "name": "pokedex",
+  "integrations": {
+    "cordova": {},
+    "capacitor": {}
+  },
+  "type": "angular"
+}

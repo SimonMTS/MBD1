@@ -1,0 +1,9 @@
+<ion-card *ngFor="let a of parent.pokemon.forms">
+  <ion-card-header>
+    <ion-card-title>{{ a.name }}</ion-card-title>
+  </ion-card-header>
+
+  <ion-card-content>
+    <app-form [url]=a.url></app-form>
+  </ion-card-content>
+</ion-card>
