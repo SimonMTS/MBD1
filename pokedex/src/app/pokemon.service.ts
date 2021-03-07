@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Plugins } from '@capacitor/core';
 const { Storage } = Plugins;
 import { Observable } from 'rxjs';
+import { nextTick } from 'process';
 
 @Injectable({
   providedIn: 'root'
@@ -10,12 +11,19 @@ import { Observable } from 'rxjs';
 export class PokemonService {
 
   pokemons = [];
+  pokeObservable = new Observable<any[]>((observer) => {
+    Storage.get({
+      key: 'pokemons'
+    }).then((data) => {
+      this.pokemons = JSON.parse(data.value) || [];
+      observer.next(this.pokemons);
+    });
+    observer.next(this.pokemons);
+  });
 
-  constructor(public httpClient: HttpClient) {
-    // load from storage
-  }
+  constructor(public httpClient: HttpClient) { }
 
-  public writePokemons() {
+  private writePokemons() {
     Storage.set({
       key: 'pokemons',
       value: JSON.stringify(this.pokemons)
@@ -26,7 +34,7 @@ export class PokemonService {
     return new Observable((observer) => {
 
       for (let i = 0; i < 10; i++) {
-        let id = Math.floor(Math.random() * 895);
+        let id = Math.floor(Math.random() * 895) + 1;
 
         this.httpClient.get('https://pokeapi.co/api/v2/pokemon/' + id).subscribe(res => {
           let loc = location;
@@ -49,11 +57,12 @@ export class PokemonService {
   }
 
   public getCaughtPokemons() {
-    return this.pokemons;
+    return this.pokeObservable;
   }
 
   public addCaughtPokemon(pokemon) {
     this.pokemons.push(pokemon);
+    this.writePokemons();
   }
 
   public getAllPokemons() {

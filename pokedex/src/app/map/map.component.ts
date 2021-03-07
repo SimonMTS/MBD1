@@ -4,6 +4,7 @@ import { PokemonService } from '../pokemon.service';
 import { ActionSheetController } from '@ionic/angular';
 import { NavController } from '@ionic/angular';
 import { PopoverController } from '@ionic/angular';
+import { ToastController } from '@ionic/angular';
 import { CatchpopoverComponent } from '../catchpopover/catchpopover.component';
 
 @Component({
@@ -19,7 +20,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
   private map;
 
   constructor(private pokemonService: PokemonService, public actionSheetController: ActionSheetController,
-    private navCtrl: NavController, public popoverController: PopoverController) { }
+    private navCtrl: NavController, public popoverController: PopoverController, public toastController: ToastController) { }
 
   ngAfterViewInit() {
     this.initMap();
@@ -28,15 +29,14 @@ export class MapComponent implements AfterViewInit, OnChanges {
   ngOnChanges() {
     if (!this.map) return;
     this.map.invalidateSize();
-    this.map.setView([this.lat, this.long], 13);
+    this.map.setView([this.lat, this.long], 18);
     L.circle([this.lat, this.long], this.accuracy / 2).addTo(this.map);
 
     this.initMarkers();
   }
 
   private initMap(): void {
-    // this.map = L.map('map').setView([51.7759999, 5.5234895], 7);
-    this.map = L.map('map').setView([this.lat, this.long], 7);
+    this.map = L.map('map').setView([this.lat, this.long], 18);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(this.map);
 
@@ -56,11 +56,11 @@ export class MapComponent implements AfterViewInit, OnChanges {
       });
 
       let mark = L.marker([pokemon["location"]["lat"], pokemon["location"]["long"]], { icon: icon }).addTo(this.map);
-      mark.on('click', () => { console.log(pokemon); this.presentActionSheet(pokemon); });
+      mark.on('click', () => { console.log(pokemon); this.presentActionSheet(pokemon, mark); });
     });
   }
 
-  async presentActionSheet(pokemon) {
+  async presentActionSheet(pokemon, marker) {
     const actionSheet = await this.actionSheetController.create({
       header: pokemon["pokemon"]["name"],
       cssClass: 'my-custom-class',
@@ -68,7 +68,11 @@ export class MapComponent implements AfterViewInit, OnChanges {
         text: 'Try to catch',
         icon: 'caret-forward-circle',
         handler: () => {
-          this.presentPopover({});
+          this.presentPopover({
+            "as": actionSheet,
+            "pokemon": pokemon,
+            "marker": marker
+          });
           return false;
         }
       }, {
@@ -94,7 +98,28 @@ export class MapComponent implements AfterViewInit, OnChanges {
       event: ev,
       translucent: true
     });
+    popover.onDidDismiss().then((dataReturned) => {
+      if (dataReturned !== null) {
+        if (dataReturned.data["success"]) {
+          // as add btn
+          this.pokemonService.addCaughtPokemon(ev["pokemon"]["pokemon"]);
+        } else {
+          ev["as"].dismiss();
+          this.presentToast(ev["pokemon"]["pokemon"]["name"] + " got away");
+          this.map.removeLayer(ev["marker"]);
+        }
+        // add new pokemon to map
+      }
+    });
     return await popover.present();
+  }
+
+  async presentToast(msg) {
+    const toast = await this.toastController.create({
+      message: msg,
+      duration: 2000
+    });
+    toast.present();
   }
 
 }

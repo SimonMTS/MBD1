@@ -4,8 +4,12 @@
     <p>
       Your phone will vibrate in a bit.
       When it does, click the Catch button.
-      <ion-button expand="block" (click)="startcatching($event)">Lets go!</ion-button>
-      <ion-button disabled="true" expand="block" color="success" class="ion-margin-top">Catch</ion-button>
+      <ion-button [disabled]="started ? 'disabled': null" expand="block" (click)="startcatching($event)">Lets go!
+      </ion-button>
+      <ion-button [disabled]="!canClick ? 'disabled': null" (click)="catchbtn($event)" expand="block" color="success"
+        class="ion-margin-top">
+        Catch
+      </ion-button>
     </p>
   </div>
 </ion-content>
