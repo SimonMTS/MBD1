@@ -1,3 +1,11 @@
-<p>
-  stats works!
-</p>
+<ion-content fullscreen>
+  <ion-card *ngFor="let s of parent.pokemon.stats">
+    <ion-card-header>
+      <ion-card-title>{{ s.stat.name }}</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      {{ s.base_stat }}
+    </ion-card-content>
+  </ion-card>
+</ion-content>

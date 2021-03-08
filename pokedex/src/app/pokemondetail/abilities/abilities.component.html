@@ -1,3 +1,11 @@
-<p>
-  abilities works!
-</p>
+<ion-content fullscreen>
+  <ion-card *ngFor="let a of parent.pokemon.abilities">
+    <ion-card-header>
+      <ion-card-title>{{ a.ability.name }}</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      {{ getFlavor(a.ability.name) }}
+    </ion-card-content>
+  </ion-card>
+</ion-content>

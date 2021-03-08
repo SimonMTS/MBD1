@@ -65,6 +65,14 @@ export class PokemonService {
     this.writePokemons();
   }
 
+  public removeCaughtPokemon(pokemon) {
+    const index = this.pokemons.indexOf(pokemon);
+    if (index > -1) {
+      this.pokemons.splice(index, 1);
+    }
+    this.writePokemons();
+  }
+
   public getAllPokemons() {
 
   }

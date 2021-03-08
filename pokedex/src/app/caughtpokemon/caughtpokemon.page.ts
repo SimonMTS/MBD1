@@ -15,8 +15,11 @@ export class CaughtpokemonPage implements OnInit {
   ngOnInit() {
     this.pokemonService.getCaughtPokemons().subscribe((data) => {
       this.pokemon = data;
-      console.log(this.pokemon);
     });
+  }
+
+  public release(pokemon) {
+    this.pokemonService.removeCaughtPokemon(pokemon);
   }
 
 }
