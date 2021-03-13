@@ -8,5 +8,11 @@
 </ion-header>
 
 <ion-content>
-  <app-map [lat]=coords.latitude [long]=coords.longitude [accuracy]=coords.accuracy></app-map>
+  <div [hidden]=mapLoadError class="ion-text-center ion-padding-top">
+    <ion-spinner></ion-spinner>
+  </div>
+  <div [hidden]=!mapLoadError class="ion-text-center ion-padding-top">
+    <p>Error: {{mapError}}</p>
+  </div>
+  <app-map [hidden]=!mapLoaded [lat]=coords.latitude [long]=coords.longitude [accuracy]=coords.accuracy></app-map>
 </ion-content>

@@ -13,15 +13,40 @@ export class CatchpokemonPage implements OnInit {
     longitude: 0
   };
 
+  mapLoaded = false;
+  mapLoadError = false;
+  mapError = "";
+
   constructor() { }
 
   ngOnInit() {
     Geolocation.getCurrentPosition({
-      timeout: 100000000
+      timeout: 10000
     }).then((coordinates) => {
       this.coords = coordinates["coords"];
+      this.mapLoaded = true;
+      this.mapLoadError = false;
+      this.mapError = "";
     }).catch((error) => {
       console.log('Error getting location', error);
+      this.mapLoaded = false;
+      this.mapLoadError = true;
+      this.mapError = error["message"];
+    });
+
+    Geolocation.watchPosition({}, (data, error) => {
+      if (error) {
+        console.log('Error getting location', error);
+        this.mapLoaded = false;
+        this.mapLoadError = true;
+        this.mapError = error["message"];
+      } else {
+        // console.log(data);
+        this.coords = data["coords"];
+        this.mapLoaded = true;
+        this.mapLoadError = false;
+        this.mapError = "";
+      }
     });
   }
 

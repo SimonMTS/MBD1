@@ -16,6 +16,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
   @Input() lat: string;
   @Input() long: string;
   @Input() accuracy: number;
+  circle: L.Circle;
 
   private map;
 
@@ -29,8 +30,11 @@ export class MapComponent implements AfterViewInit, OnChanges {
   ngOnChanges() {
     if (!this.map) return;
     this.map.invalidateSize();
-    this.map.setView([this.lat, this.long], 18);
-    L.circle([this.lat, this.long], this.accuracy / 2).addTo(this.map);
+    this.map.setView([this.lat, this.long], 17);
+
+    if (this.circle) this.map.removeLayer(this.circle);
+    this.circle = L.circle([this.lat, this.long], this.accuracy / 2);
+    this.circle.addTo(this.map);
 
     this.initMarkers();
   }
@@ -49,6 +53,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
 
   private initMarkers() {
     this.pokemonService.getRandomPokemons({ "lat": this.lat, "long": this.long }).subscribe(pokemon => {
+      // pokemons.forEach(pokemon => {
       let icon = L.icon({
         iconUrl: pokemon["pokemon"]["sprites"]["front_default"],
         iconSize: [70, 70],
@@ -57,6 +62,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
 
       let mark = L.marker([pokemon["location"]["lat"], pokemon["location"]["long"]], { icon: icon }).addTo(this.map);
       mark.on('click', () => { console.log(pokemon); this.presentActionSheet(pokemon, mark); });
+      // });
     });
   }
 
