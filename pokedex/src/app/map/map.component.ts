@@ -13,8 +13,8 @@ import { CatchpopoverComponent } from '../catchpopover/catchpopover.component';
   styleUrls: ['./map.component.scss'],
 })
 export class MapComponent implements AfterViewInit, OnChanges {
-  @Input() lat: string;
-  @Input() long: string;
+  @Input() lat: number;
+  @Input() long: number;
   @Input() accuracy: number;
   circle: L.Circle;
 
@@ -30,7 +30,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
   ngOnChanges() {
     if (!this.map) return;
     this.map.invalidateSize();
-    this.map.setView([this.lat, this.long], 17);
+    this.map.setView([this.lat, this.long]);
 
     if (this.circle) this.map.removeLayer(this.circle);
     this.circle = L.circle([this.lat, this.long], this.accuracy / 2);
@@ -51,7 +51,12 @@ export class MapComponent implements AfterViewInit, OnChanges {
 
   }
 
+  markers = [];
   private initMarkers() {
+    this.markers.forEach(m => {
+      this.map.removeLayer(m);
+    });
+
     this.pokemonService.getRandomPokemons({ "lat": this.lat, "long": this.long }).subscribe(pokemon => {
       // pokemons.forEach(pokemon => {
       let icon = L.icon({
@@ -61,8 +66,17 @@ export class MapComponent implements AfterViewInit, OnChanges {
       });
 
       let mark = L.marker([pokemon["location"]["lat"], pokemon["location"]["long"]], { icon: icon }).addTo(this.map);
-      mark.on('click', () => { console.log(pokemon); this.presentActionSheet(pokemon, mark); });
-      // });
+      this.markers.push(mark);
+      mark.on('click', (m) => {
+        console.log(pokemon);
+        let range = 0.015 / 30;
+        if (true || Math.abs(this.lat - pokemon["location"]["lat"]) <= range && Math.abs(this.long - pokemon["location"]["long"]) <= range) {
+          this.presentActionSheet(pokemon, mark);
+        } else {
+          this.presentToast("Get a bit closer");
+        }
+      });
+
     });
   }
 
@@ -105,16 +119,18 @@ export class MapComponent implements AfterViewInit, OnChanges {
       translucent: true
     });
     popover.onDidDismiss().then((dataReturned) => {
-      if (dataReturned !== null) {
+      if (dataReturned.data != undefined) {
         if (dataReturned.data["success"]) {
-          // as add btn
+          ev["as"].dismiss();
+          this.presentToast("Caught " + ev["pokemon"]["pokemon"]["name"] + "!");
           this.pokemonService.addCaughtPokemon(ev["pokemon"]["pokemon"]);
         } else {
           ev["as"].dismiss();
           this.presentToast(ev["pokemon"]["pokemon"]["name"] + " got away");
-          this.map.removeLayer(ev["marker"]);
         }
-        // add new pokemon to map
+
+        this.map.removeLayer(ev["marker"]);
+        this.pokemonService.removeCatchablePokemon(ev["pokemon"]);
       }
     });
     return await popover.present();

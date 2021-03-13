@@ -27,7 +27,7 @@ export class PokemonService {
   // catchable pokemon
   catchablePokemons = [];
   catchablePokeObservable = new Observable<any[]>((observer) => {
-    if (this.catchablePokemons !== []) { observer.next(this.catchablePokemons); observer.complete(); }
+    if (this.catchablePokemons.length > 0) { observer.next(this.catchablePokemons); observer.complete(); }
 
     Storage.get({
       key: 'catchablePokemons'
@@ -50,111 +50,61 @@ export class PokemonService {
     });
   }
 
-  // public getRandomPokemons(location): Observable<any> {
-  //   return new Observable((observer) => {
-  //     console.log("in range");
-  //     this.inRange(location).then((n) => console.log(n));
-
-  //     for (let i = 0; i < 10; i++) {
-  //       let id = Math.floor(Math.random() * 895) + 1;
-
-  //       this.httpClient.get('https://pokeapi.co/api/v2/pokemon/' + id).subscribe(res => {
-  //         let loc = {};
-  //         loc["lat"] = location["lat"] + this.randomLocOffset();
-  //         loc["long"] = location["long"] + this.randomLocOffset();
-
-  //         observer.next({
-  //           "location": loc,
-  //           "pokemon": res
-  //         });
-  //       });
-  //     }
-
-  //   });
-  // }
+  private writeCatchablePokemons() {
+    Storage.set({
+      key: 'catchablePokemons',
+      value: JSON.stringify(this.catchablePokemons)
+    });
+  }
 
   public getRandomPokemons(location): Observable<any> {
     return new Observable((observer) => {
-      console.log("in range");
-      this.inRange(location).then((n) => console.log(n));
+      this.inRange(location).then((existing) => {
 
-      for (let i = 0; i < 10; i++) {
-        let id = Math.floor(Math.random() * 895) + 1;
-
-        this.httpClient.get('https://pokeapi.co/api/v2/pokemon/' + id).subscribe(res => {
-          let loc = {};
-          loc["lat"] = location["lat"] + this.randomLocOffset();
-          loc["long"] = location["long"] + this.randomLocOffset();
-
-          observer.next({
-            "location": loc,
-            "pokemon": res
-          });
+        existing.forEach(existingPokemon => {
+          observer.next(existingPokemon);
         });
-      }
+
+        for (let i = existing.length; i < 10; i++) {
+          let id = Math.floor(Math.random() * 895) + 1;
+
+          this.httpClient.get('https://pokeapi.co/api/v2/pokemon/' + id).subscribe(res => {
+            let loc = {};
+            loc["lat"] = location["lat"] + this.randomLocOffset();
+            loc["long"] = location["long"] + this.randomLocOffset();
+
+            let pok = {
+              "location": loc,
+              "pokemon": res
+            };
+            this.catchablePokemons.push(pok);
+            observer.next(pok);
+            this.writeCatchablePokemons();
+          });
+        }
+
+      });
 
     });
   }
 
-  // public async getRandomPokemons(location): Promise<any> {
-  //   let existingcatchablepokemons = await this.catchablePokeObservable.toPromise();
-  //   let inrange = this.inRange(existingcatchablepokemons, location);
-
-  //   let pokemons = [];
-
-  //   for (let i = inrange; i < 10; i++) {
-  //     let id = Math.floor(Math.random() * 895) + 1;
-
-  //     let res = await this.httpClient.get('https://pokeapi.co/api/v2/pokemon/' + id).toPromise();//.subscribe(res => {
-  //     console.log(res);
-
-  //     let loc = {};
-  //     loc["lat"] = location["lat"] + this.randomLocOffset();
-  //     loc["long"] = location["long"] + this.randomLocOffset();
-
-  //     pokemons.push({
-  //       "location": loc,
-  //       "pokemon": res
-  //     });
-  //     //});
-  //   }
-
-  //   return pokemons;
-  // }
-
-  private async inRange(location): Promise<number> {
-
-    // can just use square
-    function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-      var R = 6371; // Radius of the earth in km
-      var dLat = deg2rad(lat2 - lat1);  // deg2rad below
-      var dLon = deg2rad(lon2 - lon1);
-      var a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-      var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      var d = R * c; // Distance in km
-      return d;
-    }
-
-    function deg2rad(deg) {
-      return deg * (Math.PI / 180);
-    }
+  private async inRange(location): Promise<any[]> {
+    let range = 0.015;
 
     let existingcatchablepokemons = await this.catchablePokeObservable.toPromise();
+    // console.log(existingcatchablepokemons.length)
     let inrange = 0;
+    let pokemonsInRange = [];
 
     existingcatchablepokemons.forEach(pokemon => {
-      console.log(pokemon);
-      let asd = getDistanceFromLatLonInKm(location["lat"], location["long"], pokemon["lat"], pokemon["long"]);
-
-      if (false) {
+      if (Math.abs(location["lat"] - pokemon["location"]["lat"]) <= range && Math.abs(location["long"] - pokemon["location"]["long"]) <= range) {
+        // console.log(pokemon);
         inrange++;
+        pokemonsInRange.push(pokemon);
       }
     });
 
-    return inrange;
+    return pokemonsInRange;
   }
 
   private randomLocOffset() {
@@ -177,6 +127,24 @@ export class PokemonService {
       this.pokemons.splice(index, 1);
     }
     this.writePokemons();
+  }
+
+  public removeCatchablePokemon(pokemon) {
+    // const index = this.catchablePokemons.indexOf(pokemon);
+    // if (index > -1) {
+    //   this.catchablePokemons.splice(index, 1);
+    // }
+
+    for (let i = 0; i < this.catchablePokemons.length; i++) {
+      const element = this.catchablePokemons[i];
+
+      if (element["pokemon"]["name"] == pokemon["pokemon"]["name"]) {
+        console.log(this.catchablePokemons[i]);
+        this.catchablePokemons.splice(i, 1);
+        break;
+      }
+    }
+    this.writeCatchablePokemons();
   }
 
   public getAllPokemons() {
