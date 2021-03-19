@@ -147,8 +147,8 @@ export class PokemonService {
     this.writeCatchablePokemons();
   }
 
-  public getAllPokemons() {
-
+  public getAllPokemons(offset = 0) {
+    return this.httpClient.get('https://pokeapi.co/api/v2/pokemon?limit=15&offset=' + offset);
   }
 
 }

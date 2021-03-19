@@ -9,8 +9,6 @@ import { AllpokemonPageRoutingModule } from './allpokemon-routing.module';
 
 import { AllpokemonPage } from './allpokemon.page';
 
-import { ScrollComponent } from './scroll/scroll.component'
-
 @NgModule({
   imports: [
     CommonModule,
@@ -19,6 +17,6 @@ import { ScrollComponent } from './scroll/scroll.component'
     AllpokemonPageRoutingModule,
     HttpClientModule
   ],
-  declarations: [AllpokemonPage, ScrollComponent]
+  declarations: [AllpokemonPage]
 })
 export class AllpokemonPageModule { }

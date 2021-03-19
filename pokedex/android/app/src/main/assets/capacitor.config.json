@@ -20,9 +20,5 @@
       "SplashScreen": "screen",
       "SplashScreenDelay": "3000"
     }
-  },
-  "server": {
-    "url": "https://192.168.178.13:8100",
-    "cleartext": true
   }
 }

@@ -70,7 +70,11 @@ export class MapComponent implements AfterViewInit, OnChanges {
       mark.on('click', (m) => {
         console.log(pokemon);
         let range = 0.015 / 30;
-        if (true || Math.abs(this.lat - pokemon["location"]["lat"]) <= range && Math.abs(this.long - pokemon["location"]["long"]) <= range) {
+        if (
+          // true ||
+          Math.abs(this.lat - pokemon["location"]["lat"]) <= range &&
+          Math.abs(this.long - pokemon["location"]["long"]) <= range
+        ) {
           this.presentActionSheet(pokemon, mark);
         } else {
           this.presentToast("Get a bit closer");
